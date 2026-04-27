@@ -30,20 +30,10 @@ internal class PinnedBlueprintWidget : MonoBehaviour
     private float _findIndicatorTimer;
     private CraftingRecipe? _renderedFor;
     private CargoIndicator? _cargoIndicator;
-    // Track the previous value of each gate so we can log when *any* of them
-    // flip — not just when the final visibility flips.
-    private bool? _prevHasPin;
-    private bool? _prevCargoVisible;
-    private bool? _prevForgeOpen;
 
     public static void EnsureSpawned()
     {
-        if (_instance != null)
-        {
-            Plugin.Log.LogInfo("[VGBlueprintPin] Widget.EnsureSpawned: already spawned");
-            return;
-        }
-        Plugin.Log.LogInfo("[VGBlueprintPin] Widget.EnsureSpawned: spawning canvas + card");
+        if (_instance != null) return;
 
         var canvasGo = new GameObject("VGBlueprintPin.WidgetCanvas",
             typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -66,10 +56,6 @@ internal class PinnedBlueprintWidget : MonoBehaviour
 
         BlueprintPin.Changed += widget.OnPinChanged;
         widget.OnPinChanged();
-
-        Canvas.ForceUpdateCanvases();
-        Plugin.Log.LogInfo("[VGBlueprintPin] " + Util.RectLog.Dump("widgetCanvas", canvasGo.GetComponent<RectTransform>()));
-        Plugin.Log.LogInfo("[VGBlueprintPin] " + Util.RectLog.Dump("widgetCard", widget._card));
     }
 
     private void Build(Transform parent)
@@ -153,11 +139,7 @@ internal class PinnedBlueprintWidget : MonoBehaviour
         _rowsParent = rowsRt;
     }
 
-    private void OnPinChanged()
-    {
-        Plugin.Log.LogInfo($"[VGBlueprintPin] OnPinChanged: pin={(BlueprintPin.Current != null ? BlueprintPin.Current.displayName : "null")}");
-        Rebuild();
-    }
+    private void OnPinChanged() => Rebuild();
 
     private void Rebuild()
     {
@@ -239,37 +221,16 @@ internal class PinnedBlueprintWidget : MonoBehaviour
             {
                 _findIndicatorTimer = 0f;
                 _cargoIndicator = UnityEngine.Object.FindAnyObjectByType<CargoIndicator>(FindObjectsInactive.Include);
-                if (_cargoIndicator != null)
-                {
-                    Plugin.Log.LogInfo("[VGBlueprintPin] " + Util.RectLog.Dump("cargoIndicator", _cargoIndicator.transform as RectTransform));
-                }
-                else
-                {
-                    Plugin.Log.LogInfo("[VGBlueprintPin] CargoIndicator not yet found");
-                }
             }
         }
 
         bool hasPin = BlueprintPin.Current != null && (UnityEngine.Object)BlueprintPin.Current != null;
         bool cargoVisible = _cargoIndicator != null && _cargoIndicator.gameObject.activeInHierarchy;
-        bool forgeOpen = ForgeUI.current != null && ForgeUI.current.isActiveAndEnabled;
         // Show whenever a pin is set and the side menu is up. Showing
         // alongside the open Forge is fine — gives immediate confirmation
         // that pinning worked, and the widget is small + right-aligned so
         // it doesn't fight the forge panel for attention.
         bool visible = hasPin && cargoVisible;
-
-        // Log on any individual gate change, not just the final visible flip.
-        // That way we see "forgeOpen flipped to false" even if the widget
-        // stays hidden because another gate is still closed.
-        if (_prevHasPin != hasPin || _prevCargoVisible != cargoVisible || _prevForgeOpen != forgeOpen)
-        {
-            Plugin.Log.LogInfo(
-                $"[VGBlueprintPin] gates: hasPin={hasPin} cargoVisible={cargoVisible} forgeOpen={forgeOpen} → visible={visible} (cargoIndicator={(_cargoIndicator != null ? "found" : "null")})");
-            _prevHasPin = hasPin;
-            _prevCargoVisible = cargoVisible;
-            _prevForgeOpen = forgeOpen;
-        }
 
         if (_card.gameObject.activeSelf != visible)
         {
@@ -302,10 +263,8 @@ internal class PinnedBlueprintWidget : MonoBehaviour
                     row.UpdateAmount(BlueprintPin.Count);
                 }
             }
-            catch (System.Exception e)
+            catch
             {
-                // First failure logs; we don't want a spam loop.
-                Plugin.Log.LogDebug($"[VGBlueprintPin] Row refresh skipped: {e.Message}");
             }
         }
     }

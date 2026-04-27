@@ -20,6 +20,5 @@ internal static class Forge_StartJob_Patch
         if (recipe == null || BlueprintPin.Current != recipe) return;
 
         BlueprintPin.DecrementBy(amount);
-        Plugin.Log.LogInfo($"[VGBlueprintPin] crafted {amount}x {recipe.displayName} → pin remaining={BlueprintPin.Count} (cleared={BlueprintPin.Current == null})");
     }
 }

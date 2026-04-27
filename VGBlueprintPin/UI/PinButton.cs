@@ -21,11 +21,7 @@ internal class PinButton : MonoBehaviour
 
     public static void EnsureExists(ForgeUI forgeUI, ForgeTabContents tabContents)
     {
-        if (Instance != null && Instance._tabContents == tabContents)
-        {
-            Plugin.Log.LogInfo($"[VGBlueprintPin] PinButton.EnsureExists: already exists for this tabContents (parent={(Instance.transform.parent != null ? Instance.transform.parent.name : "null")})");
-            return;
-        }
+        if (Instance != null && Instance._tabContents == tabContents) return;
 
         // Parent on the RecipeDetails panel (the recipe Icon's parent) and
         // place the button in the empty band between the Results row
@@ -36,7 +32,6 @@ internal class PinButton : MonoBehaviour
         var anchor = recipeIcon != null && recipeIcon.transform.parent != null
             ? recipeIcon.transform.parent as RectTransform
             : null;
-        Plugin.Log.LogInfo($"[VGBlueprintPin] PinButton.EnsureExists: anchor={(anchor != null ? anchor.name : "null")} forgeUI={forgeUI.name}");
         if (anchor == null)
         {
             Plugin.Log.LogWarning("[VGBlueprintPin] No anchor found for pin button — skipping injection.");
@@ -82,12 +77,6 @@ internal class PinButton : MonoBehaviour
 
         Instance = pin;
         pin.Refresh();
-
-        // Geometry dump — once at creation time. Force a layout rebuild first
-        // so anchor-resolved sizes are real and not (0,0) defaults.
-        Canvas.ForceUpdateCanvases();
-        Plugin.Log.LogInfo("[VGBlueprintPin] " + Util.RectLog.Dump("pinButton", rt));
-        Plugin.Log.LogInfo("[VGBlueprintPin] " + Util.RectLog.Dump("forgeUIRoot", anchor));
     }
 
     public void Refresh()
@@ -102,8 +91,6 @@ internal class PinButton : MonoBehaviour
 
     private void OnClicked()
     {
-        var sub = _tabContents != null ? _tabContents.subRecipe : null;
-        Plugin.Log.LogInfo($"[VGBlueprintPin] PinButton clicked. subRecipe={(sub != null ? sub.displayName : "null")} currentPin={(BlueprintPin.Current != null ? BlueprintPin.Current.displayName : "null")}");
         if (_tabContents == null || _tabContents.subRecipe == null) return;
 
         // Snapshot the count slider's current value so the widget shows

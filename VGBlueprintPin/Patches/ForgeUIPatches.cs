@@ -28,11 +28,6 @@ internal static class ForgeUI_Awake_Patch
             ForgePrefabCache.CaptureFrom(__instance, tabContents);
             PinnedBlueprintWidget.EnsureSpawned();
             PinButton.EnsureExists(__instance, tabContents);
-
-            // One-shot dump of the Forge UI tree so we can place the pin
-            // button in a region that's actually empty.
-            UnityEngine.Canvas.ForceUpdateCanvases();
-            VGBlueprintPin.Util.RectLog.DumpTree(Plugin.Log, "ForgeUI tree", __instance.transform, maxDepth: 4);
         }
         catch (System.Exception e)
         {
